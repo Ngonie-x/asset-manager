@@ -106,8 +106,8 @@ export default function UserDashboard() {
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
                     <div>
-                        <h1 className="text-4xl font-bold">My Assets</h1>
-                        <p className="text-gray-500 mt-1">Manage and track your assets</p>
+                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">My Assets</h1>
+                        <p className="text-gray-600 dark:text-gray-300 mt-1">Manage and track your assets</p>
                     </div>
                     <div className="flex gap-2">
                         <Button onClick={() => setIsModalOpen(true)}>
@@ -126,8 +126,8 @@ export default function UserDashboard() {
                     <div className="bg-white dark:bg-zinc-800 rounded-lg p-6 shadow">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Total Assets</p>
-                                <p className="text-3xl font-bold mt-1">{assets.length}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300">Total Assets</p>
+                                <p className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{assets.length}</p>
                             </div>
                             <Package className="text-blue-500" size={32} />
                         </div>
@@ -144,8 +144,8 @@ export default function UserDashboard() {
                     <div className="bg-white dark:bg-zinc-800 rounded-lg p-6 shadow">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Average Value</p>
-                                <p className="text-3xl font-bold mt-1">${averageValue.toFixed(2)}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300">Average Value</p>
+                                <p className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">${averageValue.toFixed(2)}</p>
                             </div>
                             <TrendingUp className="text-purple-500" size={32} />
                         </div>
@@ -179,7 +179,7 @@ export default function UserDashboard() {
                         <Download className="mr-2" size={16} />
                         Export CSV
                     </Button>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
                         Showing {filteredAssets.length} of {assets.length} assets
                     </div>
                 </div>
@@ -189,17 +189,17 @@ export default function UserDashboard() {
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-zinc-900">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Purchased</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Category</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Department</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Cost</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Date Purchased</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200 dark:bg-zinc-800 dark:divide-gray-700">
                             {filteredAssets.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                         {searchTerm || categoryFilter ? "No assets match your filters" : "No assets found. Create one!"}
                                     </td>
                                 </tr>
@@ -207,18 +207,18 @@ export default function UserDashboard() {
                                 filteredAssets.map((asset) => (
                                     <tr key={asset.id} className="hover:bg-gray-50 dark:hover:bg-zinc-700">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{asset.name}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs">
                                                 {asset.categories?.name}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs">
                                                 {asset.departments?.name}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">${asset.cost}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(asset.date_purchased).toLocaleDateString()}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-400">${asset.cost}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{new Date(asset.date_purchased).toLocaleDateString()}</td>
                                     </tr>
                                 ))
                             )}
