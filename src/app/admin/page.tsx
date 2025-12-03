@@ -153,10 +153,10 @@ export default function AdminDashboard() {
                                 stats.recentAssets.map((asset) => (
                                     <div key={asset.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-zinc-900 rounded">
                                         <div>
-                                            <p className="font-medium">{asset.name}</p>
+                                            <p className="font-medium text-gray-900 dark:text-white">{asset.name}</p>
                                             <p className="text-sm text-gray-600 dark:text-gray-300">{asset.categories?.name} • {asset.departments?.name}</p>
                                         </div>
-                                        <p className="font-semibold text-green-600">${asset.cost}</p>
+                                        <p className="font-semibold text-green-600 dark:text-green-400">${asset.cost}</p>
                                     </div>
                                 ))
                             )}
