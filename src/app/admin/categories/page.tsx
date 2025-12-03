@@ -115,23 +115,33 @@ export default function ManageCategoriesPage() {
         }
     };
 
-    if (loading) return <div className="p-8">Loading...</div>;
+    if (loading) return (
+        <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 p-8">
+            <div className="text-center text-gray-600 dark:text-gray-300">Loading...</div>
+        </div>
+    );
 
     return (
-        <div className="p-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 p-8">
             <div className="flex items-center gap-4 mb-6">
                 <Button variant="outline" onClick={() => router.push("/admin")}>
                     <ArrowLeft className="mr-2" size={16} />
                     Back to Dashboard
                 </Button>
-                <h1 className="text-3xl font-bold">Categories & Departments</h1>
+                <div>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Categories & Departments</h1>
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">Manage asset categories and organizational departments</p>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Categories Section */}
                 <div>
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-2xl font-semibold">Categories</h2>
+                        <div>
+                            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Categories</h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{categories.length} {categories.length === 1 ? 'category' : 'categories'}</p>
+                        </div>
                         <Button onClick={() => setShowCategoryForm(!showCategoryForm)} size="sm">
                             <Plus size={16} className="mr-2" />
                             Add Category
@@ -140,6 +150,7 @@ export default function ManageCategoriesPage() {
 
                     {showCategoryForm && (
                         <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 mb-4 shadow">
+                            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Create New Category</h3>
                             <form onSubmit={handleCreateCategory} className="space-y-3">
                                 <div>
                                     <Label htmlFor="category-name">Category Name</Label>
@@ -150,38 +161,51 @@ export default function ManageCategoriesPage() {
                                         onChange={(e) => setCategoryName(e.target.value)}
                                     />
                                 </div>
-                                <Button type="submit" disabled={loading} size="sm">
-                                    Create
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button type="submit" disabled={loading} size="sm">
+                                        Create
+                                    </Button>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => setShowCategoryForm(false)}>
+                                        Cancel
+                                    </Button>
+                                </div>
                             </form>
                         </div>
                     )}
 
-                    <div className="bg-white dark:bg-zinc-800 rounded-lg shadow">
-                        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                            {categories.map((cat) => (
-                                <li key={cat.id} className="px-4 py-3 flex justify-between items-center">
-                                    <span>{cat.name}</span>
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() => handleDeleteCategory(cat.id)}
-                                    >
-                                        <Trash2 size={16} />
-                                    </Button>
-                                </li>
-                            ))}
-                            {categories.length === 0 && (
-                                <li className="px-4 py-3 text-center text-gray-500">No categories yet</li>
-                            )}
-                        </ul>
+                    <div className="bg-white dark:bg-zinc-800 rounded-lg shadow overflow-hidden">
+                        {categories.length === 0 ? (
+                            <div className="p-12 text-center">
+                                <p className="text-gray-600 dark:text-gray-300 text-lg">No categories found</p>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Create your first category to get started</p>
+                            </div>
+                        ) : (
+                            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                                {categories.map((cat) => (
+                                    <li key={cat.id} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-zinc-700">
+                                        <span className="text-gray-900 dark:text-white font-medium">{cat.name}</span>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={() => handleDeleteCategory(cat.id)}
+                                            className="hover:bg-red-600 dark:hover:bg-red-700"
+                                        >
+                                            <Trash2 size={16} />
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 </div>
 
                 {/* Departments Section */}
                 <div>
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-2xl font-semibold">Departments</h2>
+                        <div>
+                            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Departments</h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{departments.length} {departments.length === 1 ? 'department' : 'departments'}</p>
+                        </div>
                         <Button onClick={() => setShowDepartmentForm(!showDepartmentForm)} size="sm">
                             <Plus size={16} className="mr-2" />
                             Add Department
@@ -190,6 +214,7 @@ export default function ManageCategoriesPage() {
 
                     {showDepartmentForm && (
                         <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 mb-4 shadow">
+                            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Create New Department</h3>
                             <form onSubmit={handleCreateDepartment} className="space-y-3">
                                 <div>
                                     <Label htmlFor="department-name">Department Name</Label>
@@ -200,31 +225,41 @@ export default function ManageCategoriesPage() {
                                         onChange={(e) => setDepartmentName(e.target.value)}
                                     />
                                 </div>
-                                <Button type="submit" disabled={loading} size="sm">
-                                    Create
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button type="submit" disabled={loading} size="sm">
+                                        Create
+                                    </Button>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => setShowDepartmentForm(false)}>
+                                        Cancel
+                                    </Button>
+                                </div>
                             </form>
                         </div>
                     )}
 
-                    <div className="bg-white dark:bg-zinc-800 rounded-lg shadow">
-                        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                            {departments.map((dept) => (
-                                <li key={dept.id} className="px-4 py-3 flex justify-between items-center">
-                                    <span>{dept.name}</span>
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() => handleDeleteDepartment(dept.id)}
-                                    >
-                                        <Trash2 size={16} />
-                                    </Button>
-                                </li>
-                            ))}
-                            {departments.length === 0 && (
-                                <li className="px-4 py-3 text-center text-gray-500">No departments yet</li>
-                            )}
-                        </ul>
+                    <div className="bg-white dark:bg-zinc-800 rounded-lg shadow overflow-hidden">
+                        {departments.length === 0 ? (
+                            <div className="p-12 text-center">
+                                <p className="text-gray-600 dark:text-gray-300 text-lg">No departments found</p>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Create your first department to get started</p>
+                            </div>
+                        ) : (
+                            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                                {departments.map((dept) => (
+                                    <li key={dept.id} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-zinc-700">
+                                        <span className="text-gray-900 dark:text-white font-medium">{dept.name}</span>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={() => handleDeleteDepartment(dept.id)}
+                                            className="hover:bg-red-600 dark:hover:bg-red-700"
+                                        >
+                                            <Trash2 size={16} />
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 </div>
             </div>
