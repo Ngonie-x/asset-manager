@@ -67,7 +67,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Helper function to get or create profile
-    const getOrCreateProfile = async (userId: string) => {
+    const getOrCreateProfile = async (userId: string, userData: NonNullable<typeof user>) => {
         let { data: profile, error } = await supabase
             .from('profiles')
             .select('role')
@@ -76,8 +76,8 @@ export async function middleware(request: NextRequest) {
 
         // If profile doesn't exist, create it
         if (error || !profile) {
-            const fullName = user.user_metadata?.full_name || 
-                           user.email?.split('@')[0] || 
+            const fullName = userData.user_metadata?.full_name || 
+                           userData.email?.split('@')[0] || 
                            'User'
             
             const { data: newProfile, error: createError } = await supabase
@@ -104,7 +104,7 @@ export async function middleware(request: NextRequest) {
     if (user) {
         // Redirect from login page to appropriate dashboard based on role
         if (request.nextUrl.pathname.startsWith('/login')) {
-            const profile = await getOrCreateProfile(user.id)
+            const profile = await getOrCreateProfile(user.id, user)
             
             if (profile?.role === 'admin') {
                 return NextResponse.redirect(new URL('/admin', request.url))
@@ -115,7 +115,7 @@ export async function middleware(request: NextRequest) {
 
         // Redirect from home page to appropriate dashboard
         if (request.nextUrl.pathname === '/') {
-            const profile = await getOrCreateProfile(user.id)
+            const profile = await getOrCreateProfile(user.id, user)
             
             if (profile?.role === 'admin') {
                 return NextResponse.redirect(new URL('/admin', request.url))
@@ -126,7 +126,7 @@ export async function middleware(request: NextRequest) {
 
         // Protect admin routes - redirect non-admins to dashboard
         if (request.nextUrl.pathname.startsWith('/admin')) {
-            const profile = await getOrCreateProfile(user.id)
+            const profile = await getOrCreateProfile(user.id, user)
             
             if (profile?.role !== 'admin') {
                 return NextResponse.redirect(new URL('/dashboard', request.url))
