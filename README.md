@@ -76,7 +76,16 @@ After running the migration, sign up through the app. Then manually update your 
 2. Find your user
 3. Change `role` from `user` to `admin`
 
-### 6. Run Development Server
+### 6. Test Credentials
+
+For testing purposes, you can use the following admin account credentials:
+
+```
+Email: ngonidzashedelight@gmail.com
+Password: ngonidzashe101
+```
+
+### 7. Run Development Server
 
 ```bash
 npm run dev
