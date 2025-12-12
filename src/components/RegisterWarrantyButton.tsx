@@ -77,13 +77,13 @@ export function RegisterWarrantyButton({ asset, currentUser, onSuccess }: Regist
                             <div>
                                 <span className="text-gray-600 dark:text-gray-300">Category:</span>
                                 <span className="ml-2 text-gray-900 dark:text-white">
-                                    {typeof asset.category === 'object' ? asset.category?.name : asset.category || 'N/A'}
+                                    {asset.categories?.name || asset.category?.name || asset.category || asset.categories || 'N/A'}
                                 </span>
                             </div>
                             <div>
                                 <span className="text-gray-600 dark:text-gray-300">Department:</span>
                                 <span className="ml-2 text-gray-900 dark:text-white">
-                                    {typeof asset.department === 'object' ? asset.department?.name : asset.department || 'N/A'}
+                                    {asset.departments?.name || asset.department?.name || asset.department || asset.departments || 'N/A'}
                                 </span>
                             </div>
                             <div>

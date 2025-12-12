@@ -4,8 +4,10 @@ interface Asset {
     id: string | number;
     name: string;
     category?: { name: string } | string;
+    categories?: { name: string } | any;
     category_id?: string;
     department?: { name: string } | string;
+    departments?: { name: string } | any;
     department_id?: string;
     cost: number | string;
     date_purchased: string;
@@ -72,15 +74,29 @@ export async function registerWarranty(
     options: WarrantyOptions = {}
 ): Promise<WarrantyResponse> {
     try {
-        // Get category name
-        const categoryName = typeof asset.category === 'object' 
-            ? asset.category?.name 
-            : asset.category || '';
+        // Get category name - check both plural (from Supabase relation) and singular forms
+        let categoryName = '';
+        if (asset.categories) {
+            categoryName = typeof asset.categories === 'object' 
+                ? asset.categories?.name || '' 
+                : asset.categories || '';
+        } else if (asset.category) {
+            categoryName = typeof asset.category === 'object' 
+                ? asset.category?.name || '' 
+                : asset.category || '';
+        }
 
-        // Get department name
-        const departmentName = typeof asset.department === 'object' 
-            ? asset.department?.name 
-            : asset.department || '';
+        // Get department name - check both plural (from Supabase relation) and singular forms
+        let departmentName = '';
+        if (asset.departments) {
+            departmentName = typeof asset.departments === 'object' 
+                ? asset.departments?.name || '' 
+                : asset.departments || '';
+        } else if (asset.department) {
+            departmentName = typeof asset.department === 'object' 
+                ? asset.department?.name || '' 
+                : asset.department || '';
+        }
 
         // Get created_by name
         let createdByName = '';
