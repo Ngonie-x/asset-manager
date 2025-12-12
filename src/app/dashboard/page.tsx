@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { CreateAssetModal } from "@/components/CreateAssetModal";
+import { RegisterWarrantyButton } from "@/components/RegisterWarrantyButton";
+import { batchCheckWarrantyStatus } from "@/services/warrantyService";
 import { LogOut, Download, Search, DollarSign, Package, TrendingUp } from "lucide-react";
 
 export default function UserDashboard() {
@@ -16,6 +18,9 @@ export default function UserDashboard() {
     const [searchTerm, setSearchTerm] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("");
     const [categories, setCategories] = useState<any[]>([]);
+    const [warrantyStatuses, setWarrantyStatuses] = useState<Record<string, any>>({});
+    const [loadingWarranty, setLoadingWarranty] = useState(false);
+    const [currentUser, setCurrentUser] = useState<{ id: string; full_name?: string; name?: string } | null>(null);
     const router = useRouter();
 
     const fetchAssets = async () => {
@@ -26,10 +31,22 @@ export default function UserDashboard() {
             return;
         }
 
+        // Get user profile for warranty registration
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", user.id)
+            .single();
+
+        setCurrentUser({
+            id: user.id,
+            full_name: profile?.full_name,
+        });
+
         const [assetsRes, catsRes] = await Promise.all([
             supabase
                 .from("assets")
-                .select("*, categories(name), departments(name)")
+                .select("*, categories(name), departments(name), profiles!assets_created_by_fkey(full_name)")
                 .eq("created_by", user.id)
                 .order("created_at", { ascending: false }),
             supabase.from("categories").select("*"),
@@ -38,9 +55,86 @@ export default function UserDashboard() {
         if (assetsRes.data) {
             setAssets(assetsRes.data);
             setFilteredAssets(assetsRes.data);
+            // Fetch warranty statuses for all assets
+            fetchWarrantyStatuses(assetsRes.data);
         }
         if (catsRes.data) setCategories(catsRes.data);
         setLoading(false);
+    };
+
+    const fetchWarrantyStatuses = async (assetList: any[]) => {
+        if (assetList.length === 0) return;
+        
+        setLoadingWarranty(true);
+        try {
+            const assetIds = assetList.map(a => a.id);
+            const statuses = await batchCheckWarrantyStatus(assetIds);
+            setWarrantyStatuses(statuses);
+        } catch (error) {
+            console.error("Error fetching warranty statuses:", error);
+        } finally {
+            setLoadingWarranty(false);
+        }
+    };
+
+    const handleWarrantyRegistered = (result: any) => {
+        // Update warranty status for the asset
+        if (result.asset_id || result.warranty_id) {
+            const assetId = result.asset_id || filteredAssets.find(a => a.id === result.asset_id)?.id;
+            if (assetId) {
+                setWarrantyStatuses(prev => ({
+                    ...prev,
+                    [assetId]: {
+                        is_registered: true,
+                        status: result.status,
+                        status_label: result.status_label,
+                        warranty_id: result.warranty_id,
+                        warranty_start_date: result.warranty_start_date,
+                        warranty_end_date: result.warranty_end_date,
+                        registered_at: result.registered_at,
+                    },
+                }));
+            }
+        }
+        // Refresh warranty statuses
+        fetchWarrantyStatuses(filteredAssets);
+    };
+
+    const getWarrantyBadge = (assetId: string | number) => {
+        if (loadingWarranty) {
+            return <span className="text-gray-400 dark:text-gray-500 text-xs">Loading...</span>;
+        }
+        
+        const status = warrantyStatuses[assetId];
+        if (!status || !status.is_registered) {
+            return (
+                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs">
+                    Not Registered
+                </span>
+            );
+        }
+        
+        if (status.status === 'expired') {
+            return (
+                <span className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded text-xs">
+                    Expired
+                </span>
+            );
+        }
+        
+        if (status.days_until_expiry !== undefined && status.days_until_expiry <= 30) {
+            return (
+                <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-200 rounded text-xs">
+                    Expiring Soon ({status.days_until_expiry} days)
+                </span>
+            );
+        }
+        
+        return (
+            <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 rounded text-xs">
+                Registered
+            </span>
+        );
     };
 
     useEffect(() => {
@@ -194,33 +288,52 @@ export default function UserDashboard() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Department</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Cost</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Date Purchased</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Warranty Status</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200 dark:bg-zinc-800 dark:divide-gray-700">
                             {filteredAssets.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
+                                    <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-600 dark:text-gray-300">
                                         {searchTerm || categoryFilter ? "No assets match your filters" : "No assets found. Create one!"}
                                     </td>
                                 </tr>
                             ) : (
-                                filteredAssets.map((asset) => (
-                                    <tr key={asset.id} className="hover:bg-gray-50 dark:hover:bg-zinc-700">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{asset.name}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs">
-                                                {asset.categories?.name}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs">
-                                                {asset.departments?.name}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-400">${asset.cost}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{new Date(asset.date_purchased).toLocaleDateString()}</td>
-                                    </tr>
-                                ))
+                                filteredAssets.map((asset) => {
+                                    const warrantyStatus = warrantyStatuses[asset.id];
+                                    const isWarrantyRegistered = warrantyStatus?.is_registered;
+                                    
+                                    return (
+                                        <tr key={asset.id} className="hover:bg-gray-50 dark:hover:bg-zinc-700">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{asset.name}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs">
+                                                    {asset.categories?.name}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs">
+                                                    {asset.departments?.name}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-400">${asset.cost}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{new Date(asset.date_purchased).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                {getWarrantyBadge(asset.id)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                {currentUser && !isWarrantyRegistered && (
+                                                    <RegisterWarrantyButton
+                                                        asset={asset}
+                                                        currentUser={currentUser}
+                                                        onSuccess={handleWarrantyRegistered}
+                                                    />
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
